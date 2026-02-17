@@ -4,6 +4,7 @@ import authRoutes from './routes/auth.routes.js';
 import planRoutes from './routes/plan.routes.js';
 import subscriptionRoutes from './routes/subscription.routes.js';
 import docRoutes from './routes/doc.routes.js';
+import orgRoutes from './routes/org.routes.js';
 
 const app = express();
 
@@ -19,5 +20,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/plans', planRoutes);
 app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/docs', docRoutes);
+app.use('/api/org', orgRoutes);
 
 export default app;
