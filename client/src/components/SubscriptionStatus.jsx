@@ -1,3 +1,5 @@
+import PlanBadge from './PlanBadge';
+
 export default function SubscriptionStatus({ subscription }) {
   if (!subscription) {
     return (
@@ -19,15 +21,18 @@ export default function SubscriptionStatus({ subscription }) {
     }`}>
       <div className="flex items-center justify-between">
         <div>
-          <p className={`font-medium ${
-            subscription.status === 'active'
-              ? isExpiringSoon
-                ? 'text-yellow-800'
-                : 'text-green-800'
-              : 'text-red-800'
-          }`}>
-            {subscription.plan.name} Plan
-          </p>
+          <div className="flex items-center gap-2 mb-1">
+            <span className={`font-medium ${
+              subscription.status === 'active'
+                ? isExpiringSoon
+                  ? 'text-yellow-800'
+                  : 'text-green-800'
+                : 'text-red-800'
+            }`}>
+              Current Plan:
+            </span>
+            <PlanBadge planName={subscription.plan.name} colorCode={subscription.plan.color} />
+          </div>
           <p className={`text-sm ${
             subscription.status === 'active'
               ? isExpiringSoon

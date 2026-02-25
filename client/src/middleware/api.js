@@ -25,6 +25,22 @@ api.interceptors.response.use(
       window.location.href = '/login';
     }
 
+    // Handle 403 - Feature not available or admin required
+    if (status === 403) {
+      const errorMsg = data?.error || '';
+      if (errorMsg.includes('Feature')) {
+        // Feature not available in plan - dispatch event for UI to handle
+        window.dispatchEvent(new CustomEvent('featureDenied', { detail: data }));
+      } else if (errorMsg.includes('Admin')) {
+        window.dispatchEvent(new CustomEvent('adminRequired', { detail: data }));
+      }
+    }
+
+    // Handle 429 - Usage limit reached
+    if (status === 429) {
+      window.dispatchEvent(new CustomEvent('limitReached', { detail: data }));
+    }
+
     return Promise.reject(error);
   }
 );
