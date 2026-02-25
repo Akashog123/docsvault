@@ -1,5 +1,6 @@
 import Organization from '../models/Organization.js';
 import User from '../models/User.js';
+import crypto from 'crypto';
 
 export const getOrg = async (req, res) => {
   try {
@@ -12,13 +13,19 @@ export const getOrg = async (req, res) => {
 
     res.json({ organization: org, members });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
 export const addUser = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
+
+    // Org admins can only create members
+    if (role && role !== 'member') {
+      return res.status(403).json({ error: 'Organization admins can only create member users' });
+    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -40,6 +47,40 @@ export const addUser = async (req, res) => {
       role: user.role
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const generateInviteCode = async (req, res) => {
+  try {
+    const org = await Organization.findById(req.user.orgId);
+    if (!org) {
+      return res.status(404).json({ error: 'Organization not found' });
+    }
+
+    // Generate a random 8-character hex string
+    const code = crypto.randomBytes(4).toString('hex').toUpperCase();
+    org.inviteCode = code;
+    await org.save();
+
+    res.json({ inviteCode: org.inviteCode });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const getInviteCode = async (req, res) => {
+  try {
+    const org = await Organization.findById(req.user.orgId).select('inviteCode');
+    if (!org) {
+      return res.status(404).json({ error: 'Organization not found' });
+    }
+
+    res.json({ inviteCode: org.inviteCode || null });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };

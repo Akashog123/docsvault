@@ -22,4 +22,10 @@ app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/docs', docRoutes);
 app.use('/api/org', orgRoutes);
 
+// Global error handler — catches unhandled errors from all routes
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(err.status || 500).json({ error: 'Internal server error' });
+});
+
 export default app;

@@ -28,5 +28,9 @@ const subscriptionSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 subscriptionSchema.index({ orgId: 1, status: 1 });
+subscriptionSchema.index(
+  { orgId: 1 },
+  { unique: true, partialFilterExpression: { status: 'active' } }
+);
 
 export default mongoose.model('Subscription', subscriptionSchema);

@@ -23,22 +23,22 @@ const userSchema = new mongoose.Schema({
   orgId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Organization',
-    required: true
+    required: function() {
+      return this.role !== 'super_admin';
+    }
   },
   role: {
     type: String,
-    enum: ['admin', 'member'],
+    enum: ['super_admin', 'admin', 'member'],
     default: 'member'
   }
 }, { timestamps: true });
 
-userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ orgId: 1 });
 
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+userSchema.pre('save', async function () {
+  if (!this.isModified('password')) return;
   this.password = await bcrypt.hash(this.password, 10);
-  next();
 });
 
 userSchema.methods.comparePassword = async function (candidatePassword) {

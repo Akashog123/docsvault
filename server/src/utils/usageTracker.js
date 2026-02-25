@@ -10,7 +10,14 @@ const getPeriodBounds = () => {
 export const getOrCreateUsageRecord = async (orgId, metric = 'documents') => {
   const { periodStart, periodEnd } = getPeriodBounds();
 
-  const record = await UsageRecord.findOneAndUpdate(
+  // Atomically reset any stale record for this org+metric
+  await UsageRecord.findOneAndUpdate(
+    { orgId, metric, periodEnd: { $lt: new Date() } },
+    { $set: { count: 0, periodStart, periodEnd, lastResetAt: new Date() } }
+  );
+
+  // Get or create the current-period record
+  return UsageRecord.findOneAndUpdate(
     { orgId, metric, periodStart },
     {
       $setOnInsert: {
@@ -22,43 +29,32 @@ export const getOrCreateUsageRecord = async (orgId, metric = 'documents') => {
         lastResetAt: new Date()
       }
     },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: 'after' }
   );
-
-  // Lazy reset: if the record's periodEnd has passed, reset it
-  if (record.periodEnd < new Date()) {
-    record.count = 0;
-    record.periodStart = periodStart;
-    record.periodEnd = periodEnd;
-    record.lastResetAt = new Date();
-    await record.save();
-  }
-
-  return record;
 };
 
-export const incrementUsage = async (orgId, metric = 'documents') => {
+export const incrementUsage = async (orgId, metric = 'documents', amount = 1) => {
   const { periodStart, periodEnd } = getPeriodBounds();
 
   return UsageRecord.findOneAndUpdate(
     { orgId, metric, periodStart },
     {
-      $inc: { count: 1 },
+      $inc: { count: amount },
       $setOnInsert: {
         periodEnd,
         lastResetAt: new Date()
       }
     },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: 'after' }
   );
 };
 
-export const decrementUsage = async (orgId, metric = 'documents') => {
+export const decrementUsage = async (orgId, metric = 'documents', amount = 1) => {
   const { periodStart } = getPeriodBounds();
 
   return UsageRecord.findOneAndUpdate(
-    { orgId, metric, periodStart, count: { $gt: 0 } },
-    { $inc: { count: -1 } },
-    { new: true }
+    { orgId, metric, periodStart, count: { $gte: amount } },
+    { $inc: { count: -amount } },
+    { returnDocument: 'after' }
   );
 };

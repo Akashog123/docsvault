@@ -14,6 +14,7 @@ export const getCurrentSubscription = async (req, res) => {
     }
 
     const usageRecord = await getOrCreateUsageRecord(req.user.orgId, 'documents');
+    const storageRecord = await getOrCreateUsageRecord(req.user.orgId, 'storage');
 
     res.json({
       subscription: {
@@ -28,11 +29,17 @@ export const getCurrentSubscription = async (req, res) => {
           current: usageRecord.count,
           limit: subscription.planId.limits.maxDocuments,
           resetsAt: usageRecord.periodEnd
+        },
+        storage: {
+          current: storageRecord.count,
+          limit: subscription.planId.limits.maxStorage,
+          resetsAt: storageRecord.periodEnd
         }
       }
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
@@ -81,6 +88,7 @@ export const changePlan = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };

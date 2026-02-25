@@ -9,18 +9,27 @@ const planSchema = new mongoose.Schema({
   },
   features: [{
     type: String,
-    enum: ['doc_crud', 'sharing', 'versioning', 'advanced_search']
+    trim: true
   }],
   limits: {
-    maxDocuments: {
-      type: Number,
-      required: true  // -1 = unlimited
-    }
+    type: mongoose.Schema.Types.Mixed,
+    required: true,  // -1 = unlimited, e.g. { maxDocuments: 10, maxStorage: 100 }
+    default: {}
+  },
+  isDefault: {
+    type: Boolean,
+    default: false
   },
   price: {
     type: Number,
     required: true,
     default: 0
+  },
+  color: {
+    type: String,
+    default: '#3b82f6', // Default blue
+    trim: true,
+    match: /^#([0-9a-fA-F]{3}){1,2}$/ // Ensure valid hex color
   },
   isActive: {
     type: Boolean,
