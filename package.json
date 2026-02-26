@@ -1,7 +1,6 @@
 {
   "name": "docsvault",
   "version": "1.0.0",
-  "type": "module",
   "description": "Multi-tenant SaaS application",
   "scripts": {
     "install:all": "npm install && npm --prefix server install && npm --prefix client install",
