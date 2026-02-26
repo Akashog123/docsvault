@@ -7,6 +7,11 @@ import fs from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const isServerless = !!process.env.VERCEL;
+const uploadDir = isServerless
+  ? '/tmp/uploads'
+  : path.join(__dirname, '../../uploads');
+
 export const getAllDocs = async (req, res) => {
   try {
     const docs = await Document.find({ orgId: req.user.orgId })
@@ -85,7 +90,7 @@ export const deleteDoc = async (req, res) => {
     }
 
     // Delete file from disk if it exists
-    const filePath = path.join(__dirname, '../../uploads', doc.fileName);
+    const filePath = path.join(uploadDir, doc.fileName);
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
@@ -214,7 +219,7 @@ export const downloadDoc = async (req, res) => {
       return res.status(404).json({ error: 'Document not found' });
     }
 
-    const filePath = path.join(__dirname, '../../uploads', doc.fileName);
+    const filePath = path.join(uploadDir, doc.fileName);
 
     // Check if file exists
     if (!fs.existsSync(filePath)) {

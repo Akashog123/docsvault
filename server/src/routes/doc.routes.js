@@ -12,8 +12,12 @@ import checkUsageLimit from '../middleware/checkUsageLimit.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Ensure uploads directory exists
-const uploadDir = path.join(__dirname, '../../uploads');
+// Ensure uploads directory exists — use /tmp on serverless (Vercel)
+const isServerless = !!process.env.VERCEL;
+const uploadDir = isServerless
+  ? '/tmp/uploads'
+  : path.join(__dirname, '../../uploads');
+
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
