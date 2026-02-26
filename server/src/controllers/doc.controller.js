@@ -12,9 +12,27 @@ const uploadDir = isServerless
   ? '/tmp/uploads'
   : path.join(__dirname, '../../uploads');
 
+// Build a visibility filter: admins see all org docs, members see only own + shared
+const visibilityFilter = (req) => {
+  const filter = { orgId: req.user.orgId };
+  if (req.user.role !== 'admin') {
+    filter.$or = [
+      { uploadedBy: req.user.userId },
+      { sharedWith: req.user.userId }
+    ];
+  }
+  return filter;
+};
+
+// Check if the requesting user is the document owner
+const isOwner = (doc, userId) => {
+  const ownerId = doc.uploadedBy?._id || doc.uploadedBy;
+  return ownerId.toString() === userId.toString();
+};
+
 export const getAllDocs = async (req, res) => {
   try {
-    const docs = await Document.find({ orgId: req.user.orgId })
+    const docs = await Document.find(visibilityFilter(req))
       .populate('uploadedBy', 'name email')
       .sort({ createdAt: -1 });
     res.json(docs);
@@ -26,7 +44,7 @@ export const getAllDocs = async (req, res) => {
 
 export const getDocById = async (req, res) => {
   try {
-    const doc = await Document.findOne({ _id: req.params.id, orgId: req.user.orgId })
+    const doc = await Document.findOne({ _id: req.params.id, ...visibilityFilter(req) })
       .populate('uploadedBy', 'name email')
       .populate('sharedWith', 'name email');
 
@@ -80,14 +98,18 @@ export const uploadDoc = async (req, res) => {
 
 export const deleteDoc = async (req, res) => {
   try {
-    const doc = await Document.findOneAndDelete({
-      _id: req.params.id,
-      orgId: req.user.orgId
-    });
+    const doc = await Document.findOne({ _id: req.params.id, orgId: req.user.orgId });
 
     if (!doc) {
       return res.status(404).json({ error: 'Document not found' });
     }
+
+    // Only owner or admin can delete
+    if (req.user.role !== 'admin' && !isOwner(doc, req.user.userId)) {
+      return res.status(403).json({ error: 'Only the document owner can delete this document' });
+    }
+
+    await Document.deleteOne({ _id: doc._id });
 
     // Delete file from disk if it exists
     const filePath = path.join(uploadDir, doc.fileName);
@@ -117,15 +139,21 @@ export const updateDoc = async (req, res) => {
       return res.status(400).json({ error: 'Title is required' });
     }
 
+    // Fetch first to check ownership
+    const existing = await Document.findOne({ _id: req.params.id, orgId: req.user.orgId });
+    if (!existing) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    if (req.user.role !== 'admin' && !isOwner(existing, req.user.userId)) {
+      return res.status(403).json({ error: 'Only the document owner can edit this document' });
+    }
+
     const doc = await Document.findOneAndUpdate(
       { _id: req.params.id, orgId: req.user.orgId },
       { title, description },
       { returnDocument: 'after' }
     ).populate('uploadedBy', 'name email');
-
-    if (!doc) {
-      return res.status(404).json({ error: 'Document not found' });
-    }
 
     res.json(doc);
   } catch (error) {
@@ -138,15 +166,21 @@ export const shareDoc = async (req, res) => {
   try {
     const { userIds } = req.body;
 
+    // Fetch first to check ownership
+    const existing = await Document.findOne({ _id: req.params.id, orgId: req.user.orgId });
+    if (!existing) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    if (req.user.role !== 'admin' && !isOwner(existing, req.user.userId)) {
+      return res.status(403).json({ error: 'Only the document owner can share this document' });
+    }
+
     const doc = await Document.findOneAndUpdate(
       { _id: req.params.id, orgId: req.user.orgId },
       { $addToSet: { sharedWith: { $each: userIds } } },
       { returnDocument: 'after' }
     ).populate('uploadedBy', 'name email').populate('sharedWith', 'name email');
-
-    if (!doc) {
-      return res.status(404).json({ error: 'Document not found' });
-    }
 
     res.json(doc);
   } catch (error) {
@@ -164,6 +198,11 @@ export const uploadVersion = async (req, res) => {
     const doc = await Document.findOne({ _id: req.params.id, orgId: req.user.orgId });
     if (!doc) {
       return res.status(404).json({ error: 'Document not found' });
+    }
+
+    // Only owner or admin can upload new versions
+    if (req.user.role !== 'admin' && !isOwner(doc, req.user.userId)) {
+      return res.status(403).json({ error: 'Only the document owner can upload new versions' });
     }
 
     const newVersionNumber = doc.currentVersion + 1;
@@ -198,7 +237,7 @@ export const searchDocs = async (req, res) => {
     }
 
     const docs = await Document.find({
-      orgId: req.user.orgId,
+      ...visibilityFilter(req),
       $text: { $search: q }
     })
       .populate('uploadedBy', 'name email')
@@ -213,7 +252,7 @@ export const searchDocs = async (req, res) => {
 
 export const downloadDoc = async (req, res) => {
   try {
-    const doc = await Document.findOne({ _id: req.params.id, orgId: req.user.orgId });
+    const doc = await Document.findOne({ _id: req.params.id, ...visibilityFilter(req) });
 
     if (!doc) {
       return res.status(404).json({ error: 'Document not found' });

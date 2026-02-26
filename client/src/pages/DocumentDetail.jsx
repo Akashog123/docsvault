@@ -20,6 +20,8 @@ export default function DocumentDetail() {
   const { user } = useAuth();
 
   const isAdmin = user?.role === 'admin';
+  const isDocOwner = document?.uploadedBy?._id === user?.id;
+  const canModify = isAdmin || isDocOwner;
 
   useEffect(() => {
     fetchDocument();
@@ -131,13 +133,15 @@ export default function DocumentDetail() {
                 <p className="text-gray-600 mt-2 text-lg">{document.description}</p>
               )}
             </div>
-            <button
-              onClick={() => setIsEditing(true)}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-            >
-              <Edit className="w-4 h-4 mr-2 text-gray-500" />
-              Edit Details
-            </button>
+            {canModify && (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              >
+                <Edit className="w-4 h-4 mr-2 text-gray-500" />
+                Edit Details
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -233,13 +237,15 @@ export default function DocumentDetail() {
               <span className="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full border border-blue-100">
                 {document.sharedWith?.length || 0} Users
               </span>
-              <button
-                onClick={handleOpenSharePicker}
-                className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors"
-              >
-                <UserPlus className="w-4 h-4 mr-1.5" />
-                Share
-              </button>
+              {canModify && (
+                <button
+                  onClick={handleOpenSharePicker}
+                  className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors"
+                >
+                  <UserPlus className="w-4 h-4 mr-1.5" />
+                  Share
+                </button>
+              )}
             </div>
           </div>
           <div className="p-6">

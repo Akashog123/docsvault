@@ -249,13 +249,15 @@ export default function Documents() {
                     {new Date(doc.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </td>
                   <td className="px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
-                    <button
-                      onClick={() => handleDelete(doc._id)}
-                      className="text-gray-400 hover:text-red-600 p-2 rounded-md hover:bg-red-50 transition-colors"
-                      title="Delete document"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
+                    {(isAdmin || doc.uploadedBy?._id === user?.id) && (
+                      <button
+                        onClick={() => handleDelete(doc._id)}
+                        className="text-gray-400 hover:text-red-600 p-2 rounded-md hover:bg-red-50 transition-colors"
+                        title="Delete document"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
