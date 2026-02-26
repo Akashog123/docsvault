@@ -92,7 +92,9 @@ export const deleteDoc = async (req, res) => {
 
     // Calculate total storage including all versions
     const totalStorage = doc.fileSize + (doc.versions?.reduce((sum, v) => sum + (v.fileSize || 0), 0) || 0);
-    await decrementUsage(req.user.orgId, 'documents');
+
+    // Only decrement one document count for the main document
+    await decrementUsage(req.user.orgId, 'documents', 1);
     await decrementUsage(req.user.orgId, 'storage', totalStorage);
 
     res.json({ message: 'Document deleted' });
@@ -173,6 +175,7 @@ export const uploadVersion = async (req, res) => {
     doc.fileSize = req.file.size;
     await doc.save();
 
+    // Do not increment documents count for new versions, only storage
     await incrementUsage(req.user.orgId, 'storage', req.file.size);
 
     res.json(doc);

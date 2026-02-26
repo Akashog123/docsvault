@@ -58,6 +58,6 @@ const documentSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 documentSchema.index({ orgId: 1 });
-documentSchema.index({ orgId: 1, title: 'text' });
+documentSchema.index({ title: 'text', description: 'text' });
 
 export default mongoose.model('Document', documentSchema);
