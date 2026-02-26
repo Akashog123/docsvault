@@ -244,6 +244,24 @@ npm run dev
 
 Open **http://localhost:5173** in your browser and log in with one of the seeded accounts below.
 
+## Demo Deployment Credentials
+
+Use these credentials to test the live demo on Vercel:
+
+| Account | Email | Password | Organization | Role |
+|---------|-------|----------|--------------|------|
+| Super Admin | `demo@docsvault.app` | `Demo@123` | Platform | `super_admin` |
+| Acme Admin | `acme@docsvault.app` | `Demo@123` | Acme Corp | `admin` |
+| Acme Member | `john.doe@docsvault.app` | `Demo@123` | Acme Corp | `member` |
+| Globex Admin | `globex@docsvault.app` | `Demo@123` | Globex Inc | `admin` |
+| Globex Member | `jane.doe@docsvault.app` | `Demo@123` | Globex Inc | `member` |
+
+> **Note:** These credentials are for demo purposes only. In production, use strong, unique passwords.
+
+---
+
+## Local Development
+
 ### Seeded Test Accounts
 
 `npm run seed` creates 3 plans, 3 organizations, 5 users, and Free subscriptions for all orgs:
