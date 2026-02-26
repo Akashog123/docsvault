@@ -49,6 +49,10 @@ Tests:       80 passed, 85 failed, 165 total
 3. ✅ **User.test.js** - All 22 tests passing
 4. ✅ **Subscription.test.js** - All 16 tests passing
 5. ✅ **usageTracker.test.js** - All 27 tests passing
+6. ✅ **admin.integration.test.js** - All tests passing
+7. ✅ **auth.integration.test.js** - All tests passing
+8. ✅ **featureGating.integration.test.js** - All tests passing
+9. ✅ **multitenancy.integration.test.js** - All tests passing
 
 ## What's Working
 
@@ -67,6 +71,7 @@ Tests:       80 passed, 85 failed, 165 total
 - Period-based usage reset
 - Concurrent operation handling
 - Feature availability checks
+- Admin & Super Admin flows
 
 ## What Needs Fixing
 
@@ -79,11 +84,10 @@ The following tests fail due to Jest's ES module mocking limitations:
 **Solution:** These are correctly written but need manual mocks or dependency injection.
 
 ### Integration Test Failures
-Some integration tests fail because:
-- API routes may not be fully implemented
-- Route behavior differs from test expectations
-
-**Solution:** Verify API implementation matches test expectations.
+Most integration tests for core flows (auth, admin, feature gating, multi-tenancy) are now passing. If new failures arise, check:
+- Database seeding status (ensure tests run with a clean mock database)
+- Changes in controller authorization logic
+- Test expectations compared to current API routes
 
 ## Test Coverage
 

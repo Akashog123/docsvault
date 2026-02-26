@@ -1,16 +1,60 @@
-# React + Vite
+# DocsVault Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The frontend application for the DocsVault Multi-Tenant SaaS platform. Built with React 19, Vite, and Tailwind CSS.
 
-Currently, two official plugins are available:
+## Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The client application provides a responsive, role-based dashboard for managing documents, subscriptions, and organization settings. It dynamically adapts its UI based on the user's role (`super_admin`, `admin`, `member`) and the organization's current subscription plan.
 
-## React Compiler
+## Key Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Role-Based Routing:**
+  - `super_admin` sees platform-wide views (all organizations, plan configurations).
+  - `admin` and `member` see tenant-specific dashboards.
+- **Dynamic Feature Gating:**
+  - The `<FeatureGate>` component automatically hides or locks UI elements (like Document Sharing or Version History) if the organization's plan lacks the required feature flag.
+- **Onboarding Flow:**
+  - First user setup flow for initializing the `super_admin`.
+  - Organization registration for new tenants.
+  - Member onboarding via unique `inviteCode` links.
+- **Subscription Management:**
+  - Admins can view and upgrade/downgrade plans directly from the UI.
+  - Real-time usage bars tracking document and storage limits against plan quotas.
+- **Document Management:**
+  - Upload, download, and view documents.
+  - Advanced search capabilities (for Enterprise plans).
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **Framework:** React 19
+- **Bundler:** Vite 7
+- **Styling:** Tailwind CSS v4, Lucide React (icons)
+- **Routing:** React Router v7
+- **State Management:** React Context (`AuthContext`, `SubscriptionContext`)
+- **HTTP Client:** Axios (configured with interceptors to automatically handle 401, 403, and 429 API errors)
+
+## Project Structure
+
+```
+client/src/
+├── components/          # Reusable UI components (FeatureGate, UsageBar, etc.)
+├── context/             # Global state (Auth, Subscription)
+├── pages/               # Route components (Dashboard, Documents, Admin views, etc.)
+├── utils/               # Helper functions (feature checking, formatting)
+├── App.jsx              # Main routing and layout wrapper
+└── main.jsx             # React DOM entry point
+```
+
+## Running Locally
+
+Make sure the backend server is running first.
+
+```bash
+# Install dependencies
+npm install
+
+# Start the Vite development server
+npm run dev
+```
+
+The app will be available at `http://localhost:5173`. API requests are proxied to `http://localhost:5000` as configured in `vite.config.js`.

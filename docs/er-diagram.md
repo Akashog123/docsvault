@@ -8,6 +8,8 @@ erDiagram
         ObjectId _id PK
         String name
         String slug UK
+        ObjectId adminId FK
+        String inviteCode "Sparse UK"
         Date createdAt
         Date updatedAt
     }
@@ -18,7 +20,7 @@ erDiagram
         String email UK
         String password
         ObjectId orgId FK
-        String role "admin | member"
+        String role "super_admin | admin | member"
         Date createdAt
         Date updatedAt
     }
@@ -26,6 +28,7 @@ erDiagram
     Plan {
         ObjectId _id PK
         String name UK
+        String color
         Array features "string array"
         Mixed limits "maxDocuments, maxStorage"
         Number price
@@ -58,6 +61,7 @@ erDiagram
         ObjectId orgId FK
         ObjectId uploadedBy FK
         Array sharedWith "user ObjectIds"
+        Number currentVersion
         Array versions "embedded docs"
         Date createdAt
         Date updatedAt
@@ -87,12 +91,14 @@ erDiagram
 graph LR
     subgraph Indexes["Database Indexes"]
         I1["Organization.slug<br/>(unique)"]
-        I2["User.email<br/>(unique)"]
-        I3["User.orgId<br/>(query perf)"]
-        I4["Plan.name<br/>(unique)"]
-        I5["Subscription.orgId + status<br/>(compound)"]
-        I6["Document.orgId<br/>(tenant isolation)"]
-        I7["UsageRecord.orgId + metric + periodStart<br/>(compound unique)"]
+        I2["Organization.inviteCode<br/>(sparse unique)"]
+        I3["User.email<br/>(unique)"]
+        I4["User.orgId<br/>(query perf)"]
+        I5["Plan.name<br/>(unique)"]
+        I6["Subscription.orgId + status<br/>(compound)"]
+        I7["Document.orgId<br/>(tenant isolation)"]
+        I8["Document.title + description<br/>(text index)"]
+        I9["UsageRecord.orgId + metric + periodStart<br/>(compound unique)"]
     end
 
     style Indexes fill:#f8fafc

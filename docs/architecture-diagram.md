@@ -26,6 +26,7 @@ flowchart TB
             SUBC[Subscription Controller<br/>get / changePlan]
             PLANC[Plan Controller<br/>list plans]
             ORGC[Org Controller<br/>manage members]
+            ADMINC[Admin Controller<br/>super_admin operations]
         end
 
         UT[UsageTracker Utility<br/>increment / decrement / reset]
@@ -59,6 +60,9 @@ flowchart TB
     SUBC --> PLN
     PLANC --> PLN
     ORGC --> USR
+    ORGC --> ORG
+    ADMINC --> ORG
+    ADMINC --> USR
 
     ATSUB --> SUB
     ATSUB --> PLN

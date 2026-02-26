@@ -28,10 +28,10 @@ Built with the MERN stack (MongoDB, Express.js, React, Node.js).
 
 All tenants share a single MongoDB database. Isolation is enforced at the application layer:
 
-- Every user belongs to an organization via `User.orgId`
+- Every user belongs to an organization via `User.orgId` (except the Platform super_admin)
 - Every document, subscription, and usage record is scoped by `orgId`
-- The `authenticate` middleware extracts `orgId` from the JWT and attaches it to every request
-- All database queries filter by `req.user.orgId` — tenants never see each other's data
+- The `authenticate` middleware extracts `orgId` and `role` from the JWT and attaches it to every request
+- All database queries filter by `req.user.orgId` — tenants never see each other's data (except for Super Admin flows)
 
 ### Entitlement Middleware Chain
 
@@ -63,9 +63,9 @@ The system enforces three distinct roles with clear separation of concerns:
 
 | Role | Scope | Permissions |
 |------|-------|-------------|
-| `super_admin` | Platform-wide | Edit plan configurations (name, features, limits, price). Cannot change org subscriptions. |
-| `admin` | Organization | Upgrade/downgrade org subscription, add/manage org members. Cannot edit plan definitions. |
-| `member` | Organization | Use features within the org's current plan. Read-only view of plans. |
+| `super_admin` | Platform-wide | Can view all organizations and users. Edit plan configurations (name, features, limits, price, color). Does not interact with tenant documents. |
+| `admin` | Organization | Upgrade/downgrade org subscription, manage org members, generate invite codes. Cannot edit plan definitions. |
+| `member` | Organization | Use features within the org's current plan. Read-only view of plans. Can join via invite code. |
 
 **Middleware enforcement:**
 
