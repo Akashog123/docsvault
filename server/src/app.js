@@ -5,6 +5,7 @@ import planRoutes from './routes/plan.routes.js';
 import subscriptionRoutes from './routes/subscription.routes.js';
 import docRoutes from './routes/doc.routes.js';
 import orgRoutes from './routes/org.routes.js';
+import adminRoutes from './routes/admin.routes.js';
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use('/api/plans', planRoutes);
 app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/docs', docRoutes);
 app.use('/api/org', orgRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Global error handler — catches unhandled errors from all routes
 app.use((err, req, res, next) => {
