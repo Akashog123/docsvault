@@ -1,7 +1,7 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
-import { Layers, LayoutGrid, Home, FileText, Search, Lock, Settings, CreditCard, LogOut } from 'lucide-react';
+import { Layers, LayoutGrid, Home, FileText, Search, Lock, Settings, CreditCard, LogOut, Building2 } from 'lucide-react';
 
 // Helper for contrast
 const getContrastYIQ = (hexcolor) => {
@@ -46,10 +46,16 @@ export default function Layout() {
 
           {/* Super Admin Navigation */}
           {isSuperAdmin && (
-            <Link to="/plans" className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-gray-700 hover:text-blue-700 hover:bg-blue-50 transition-colors">
-              <LayoutGrid className="w-5 h-5 mr-3 text-gray-400" />
-              Manage Plans
-            </Link>
+            <>
+              <Link to="/plans" className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-gray-700 hover:text-blue-700 hover:bg-blue-50 transition-colors">
+                <LayoutGrid className="w-5 h-5 mr-3 text-gray-400" />
+                Manage Plans
+              </Link>
+              <Link to="/organizations" className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-gray-700 hover:text-blue-700 hover:bg-blue-50 transition-colors">
+                <Building2 className="w-5 h-5 mr-3 text-gray-400" />
+                Organizations
+              </Link>
+            </>
           )}
 
           {/* Tenant Navigation (Admin & Member) */}

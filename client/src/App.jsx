@@ -11,6 +11,7 @@ import DocumentDetail from './pages/DocumentDetail';
 import Search from './pages/Search';
 import Plans from './pages/Plans';
 import OrgSettings from './pages/OrgSettings';
+import Organizations from './pages/Organizations';
 
 function AuthGuard({ children, requireAuth }) {
   const { user, loading, needsSetup } = useAuth();
@@ -82,6 +83,7 @@ function AppRoutes() {
 
         {/* Shared / Dual-Purpose Route */}
         <Route path="plans" element={<Plans />} />
+        <Route path="organizations" element={<Organizations />} />
       </Route>
     </Routes>
   );
