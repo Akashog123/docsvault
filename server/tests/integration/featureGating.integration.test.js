@@ -9,39 +9,66 @@ describe('Feature Gating Integration Tests (BUSINESS CRITICAL)', () => {
   let freeUserToken, proUserToken, enterpriseUserToken;
 
   beforeEach(async () => {
+    // Initialize platform first by creating a super_admin
+    const userCount = await User.countDocuments();
+    if (userCount === 0) {
+      await request(app)
+        .post('/api/auth/setup')
+        .send({
+          name: 'Super Admin',
+          email: 'admin@test.com',
+          password: 'admin123'
+        });
+    }
+
     // Create plans (beforeEach because global afterEach clears collections)
-    freePlan = await Plan.create({
-      name: 'Free',
-      features: ['doc_crud'],
-      limits: {
-        maxDocuments: 10,
-        maxStorage: 100,
-      },
-      price: 0,
-      isActive: true,
-    });
+    const existingFreePlan = await Plan.findOne({ name: 'Free' });
+    if (!existingFreePlan) {
+      freePlan = await Plan.create({
+        name: 'Free',
+        features: ['doc_crud'],
+        limits: {
+          maxDocuments: 10,
+          maxStorage: 100,
+        },
+        price: 0,
+        isActive: true,
+      });
+    } else {
+      freePlan = existingFreePlan;
+    }
 
-    proPlan = await Plan.create({
-      name: 'Pro',
-      features: ['doc_crud', 'sharing', 'versioning'],
-      limits: {
-        maxDocuments: 200,
-        maxStorage: 1000,
-      },
-      price: 29.99,
-      isActive: true,
-    });
+    const existingProPlan = await Plan.findOne({ name: 'Pro' });
+    if (!existingProPlan) {
+      proPlan = await Plan.create({
+        name: 'Pro',
+        features: ['doc_crud', 'sharing', 'versioning'],
+        limits: {
+          maxDocuments: 200,
+          maxStorage: 1000,
+        },
+        price: 29.99,
+        isActive: true,
+      });
+    } else {
+      proPlan = existingProPlan;
+    }
 
-    enterprisePlan = await Plan.create({
-      name: 'Enterprise',
-      features: ['doc_crud', 'sharing', 'versioning', 'advanced_search'],
-      limits: {
-        maxDocuments: -1,
-        maxStorage: -1,
-      },
-      price: 99.99,
-      isActive: true,
-    });
+    const existingEnterprisePlan = await Plan.findOne({ name: 'Enterprise' });
+    if (!existingEnterprisePlan) {
+      enterprisePlan = await Plan.create({
+        name: 'Enterprise',
+        features: ['doc_crud', 'sharing', 'versioning', 'advanced_search'],
+        limits: {
+          maxDocuments: -1,
+          maxStorage: -1,
+        },
+        price: 99.99,
+        isActive: true,
+      });
+    } else {
+      enterprisePlan = existingEnterprisePlan;
+    }
 
     // Register Free user
     const freeResponse = await request(app)

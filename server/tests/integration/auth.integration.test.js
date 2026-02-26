@@ -12,16 +12,34 @@ describe('Auth Integration Tests', () => {
   let freePlan;
 
   beforeEach(async () => {
+    // Initialize platform first by creating a super_admin if not already done
+    const userCount = await User.countDocuments();
+    if (userCount === 0) {
+      await request(app)
+        .post('/api/auth/setup')
+        .send({
+          name: 'Super Admin',
+          email: 'admin@test.com',
+          password: 'admin123'
+        });
+    }
+
     // Create Free plan for registration (beforeEach because global afterEach clears collections)
-    freePlan = await Plan.create({
-      name: 'Free',
-      features: ['doc_crud'],
-      limits: {
-        maxDocuments: 10,
-        maxStorage: 100,
-      },
-      price: 0,
-    });
+    const existingPlan = await Plan.findOne({ name: 'Free' });
+    if (!existingPlan) {
+      freePlan = await Plan.create({
+        name: 'Free',
+        features: ['doc_crud'],
+        limits: {
+          maxDocuments: 10,
+          maxStorage: 100,
+        },
+        price: 0,
+        isActive: true,
+      });
+    } else {
+      freePlan = existingPlan;
+    }
   });
 
   describe('POST /api/auth/register', () => {
