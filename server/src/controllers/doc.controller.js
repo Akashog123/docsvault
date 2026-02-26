@@ -142,7 +142,7 @@ export const shareDoc = async (req, res) => {
       { _id: req.params.id, orgId: req.user.orgId },
       { $addToSet: { sharedWith: { $each: userIds } } },
       { returnDocument: 'after' }
-    ).populate('sharedWith', 'name email');
+    ).populate('uploadedBy', 'name email').populate('sharedWith', 'name email');
 
     if (!doc) {
       return res.status(404).json({ error: 'Document not found' });

@@ -71,6 +71,16 @@ export const generateInviteCode = async (req, res) => {
   }
 };
 
+export const getOrgMembers = async (req, res) => {
+  try {
+    const members = await User.find({ orgId: req.user.orgId }).select('name email role');
+    res.json(members);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 export const getInviteCode = async (req, res) => {
   try {
     const org = await Organization.findById(req.user.orgId).select('inviteCode');

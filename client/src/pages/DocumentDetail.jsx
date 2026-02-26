@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import FeatureGate from '../components/FeatureGate';
 import api from '../middleware/api';
-import { ArrowLeft, Edit, FileText, Download, Users, Clock, HardDrive, Calendar, Check } from 'lucide-react';
+import { ArrowLeft, Edit, FileText, Download, Users, Clock, HardDrive, Calendar, Check, UserPlus, X, Loader2 } from 'lucide-react';
 
 export default function DocumentDetail() {
   const { id } = useParams();
@@ -13,6 +13,9 @@ export default function DocumentDetail() {
   const [error, setError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ title: '', description: '' });
+  const [orgMembers, setOrgMembers] = useState([]);
+  const [showSharePicker, setShowSharePicker] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const { subscription } = useSubscription();
   const { user } = useAuth();
 
@@ -43,6 +46,37 @@ export default function DocumentDetail() {
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to update document');
     }
+  };
+
+  const fetchOrgMembers = async () => {
+    try {
+      const { data } = await api.get('/org/members');
+      setOrgMembers(data || []);
+    } catch (err) {
+      // silently fail — share picker just won't show members
+    }
+  };
+
+  const handleOpenSharePicker = () => {
+    if (orgMembers.length === 0) fetchOrgMembers();
+    setShowSharePicker(true);
+  };
+
+  const handleShareWith = async (userId) => {
+    try {
+      setSharing(true);
+      const { data } = await api.post(`/docs/${id}/share`, { userIds: [userId] });
+      setDocument(data);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to share document');
+    } finally {
+      setSharing(false);
+    }
+  };
+
+  const getShareableMembers = () => {
+    const sharedIds = new Set(document.sharedWith?.map(u => u._id) || []);
+    return orgMembers.filter(m => !sharedIds.has(m._id) && m._id !== document.uploadedBy?._id);
   };
 
   if (loading) return <div>Loading...</div>;
@@ -195,21 +229,70 @@ export default function DocumentDetail() {
               <Users className="w-5 h-5 text-gray-400" />
               Share Document
             </h2>
-            <span className="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full border border-blue-100">
-              {document.sharedWith?.length || 0} Users
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full border border-blue-100">
+                {document.sharedWith?.length || 0} Users
+              </span>
+              <button
+                onClick={handleOpenSharePicker}
+                className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors"
+              >
+                <UserPlus className="w-4 h-4 mr-1.5" />
+                Share
+              </button>
+            </div>
           </div>
           <div className="p-6">
+            {/* Share Picker */}
+            {showSharePicker && (
+              <div className="mb-6 border border-blue-200 rounded-lg bg-blue-50/50 p-4">
+                <div className="flex justify-between items-center mb-3">
+                  <p className="text-sm font-medium text-gray-700">Select a team member to share with</p>
+                  <button onClick={() => setShowSharePicker(false)} className="text-gray-400 hover:text-gray-600">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                {getShareableMembers().length > 0 ? (
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {getShareableMembers().map((member) => (
+                      <button
+                        key={member._id}
+                        onClick={() => handleShareWith(member._id)}
+                        disabled={sharing}
+                        className="w-full flex items-center gap-3 p-2.5 rounded-lg bg-white border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors text-left disabled:opacity-50"
+                      >
+                        <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs flex-shrink-0">
+                          {member.name?.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-gray-900 truncate">{member.name}</p>
+                          <p className="text-xs text-gray-500 truncate">{member.email}</p>
+                        </div>
+                        {sharing ? (
+                          <Loader2 className="w-4 h-4 animate-spin text-blue-500 flex-shrink-0" />
+                        ) : (
+                          <UserPlus className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">All team members already have access.</p>
+                )}
+              </div>
+            )}
+
+            {/* Shared Users List */}
             {document.sharedWith?.length > 0 ? (
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {document.sharedWith.map((user) => (
-                  <li key={user._id} className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
+                {document.sharedWith.map((sharedUser) => (
+                  <li key={sharedUser._id} className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center text-purple-700 font-bold text-sm border border-purple-200 flex-shrink-0">
-                      {user.name.charAt(0).toUpperCase()}
+                      {sharedUser.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
-                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                      <p className="text-sm font-medium text-gray-900 truncate">{sharedUser.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{sharedUser.email}</p>
                     </div>
                   </li>
                 ))}

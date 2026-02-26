@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getOrg, addUser, generateInviteCode, getInviteCode } from '../controllers/org.controller.js';
+import { getOrg, getOrgMembers, addUser, generateInviteCode, getInviteCode } from '../controllers/org.controller.js';
 import authenticate from '../middleware/authenticate.js';
 import attachSubscription from '../middleware/attachSubscription.js';
 import adminOnly from '../middleware/adminOnly.js';
@@ -8,6 +8,8 @@ const router = Router();
 
 // View org details and members - only org admin
 router.get('/', authenticate, attachSubscription, adminOnly, getOrg);
+// List org members - any authenticated user in the org
+router.get('/members', authenticate, getOrgMembers);
 // Add user to org - only org admin
 router.post('/users', authenticate, attachSubscription, adminOnly, addUser);
 // Manage invite codes - only org admin
