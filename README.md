@@ -242,9 +242,7 @@ npm install
 npm run dev
 ```
 
-Open **http://localhost:5173** in your browser and log in with one of the seeded accounts below.
-
-## Demo Deployment Credentials
+## Demo Deployment Credentials for usage in https://docsvault-nine.vercel.app/ demo deployment
 
 Use these credentials to test the live demo on Vercel:
 
